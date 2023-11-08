@@ -26,8 +26,7 @@ def load(app):
         @wraps(f)
         def wrapper(*args, **kwargs):
             result = f(*args, **kwargs)
-            if not ctftime():
-                return result
+
             data = result.json
             if isinstance(data, dict) and data.get("success") == True and isinstance(data.get("data"), dict) and data.get("data").get("status") == "correct":
                 if request.content_type != "application/json":
@@ -54,21 +53,31 @@ def load(app):
                 user = get_current_user()
                 team = get_current_team()
 
+                name = user.name
+                team = team.name if TEAMS_MODE else None
+
+                if config.is_scoreboard_frozen():
+                    if TEAMS_MODE:
+                        name = 'someone'
+                        team = '???'
+                    else:
+                        name = '???'
+
                 message = ""
                 if TEAMS_MODE:
                     if num_solves == 1:
-                        message = f":first_place: First blood for challenge **{challenge.name}** goes to **{user.name}** from team **{team.name}**! :drop_of_blood:"
+                        message = f":first_place: First blood for challenge **{challenge.name}** goes to **{name}** from team **{team}**! :drop_of_blood:"
                     elif num_solves == 2:
-                        message = f":second_place: **{user.name}** from team **{team.name}** became the second one to solve **{challenge.name}**! :cold_face:"
+                        message = f":second_place: **{name}** from team **{team}** became the second one to solve **{challenge.name}**! :cold_face:"
                     elif num_solves == 3:
-                        message = f":third_place: The third one to solve **{challenge.name}** was **{user.name}** from team **{team.name}**! :sunglasses:"
+                        message = f":third_place: The third one to solve **{challenge.name}** was **{name}** from team **{team}**! :sunglasses:"
                 else:
                     if num_solves == 1:
-                        message = f":first_place: First blood for challenge **{challenge.name}** goes to **{user.name}**! :drop_of_blood:"
+                        message = f":first_place: First blood for challenge **{challenge.name}** goes to **{name}**! :drop_of_blood:"
                     elif num_solves == 2:
-                        message = f":second_place: **{user.name}** became the second one to solve **{challenge.name}**! :cold_face:"
+                        message = f":second_place: **{name}** became the second one to solve **{challenge.name}**! :cold_face:"
                     elif num_solves == 3:
-                        message = f":third_place: The third one to solve **{challenge.name}** was **{user.name}**! :sunglasses:"
+                        message = f":third_place: The third one to solve **{challenge.name}** was **{name}**! :sunglasses:"
                 webhook.content = message
                 webhook.execute()
             return result
