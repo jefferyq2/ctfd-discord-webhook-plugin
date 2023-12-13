@@ -26,7 +26,8 @@ def load(app):
         @wraps(f)
         def wrapper(*args, **kwargs):
             result = f(*args, **kwargs)
-
+            if not ctftime():
+                return result
             data = result.json
             if isinstance(data, dict) and data.get("success") == True and isinstance(data.get("data"), dict) and data.get("data").get("status") == "correct":
                 if request.content_type != "application/json":
@@ -56,7 +57,7 @@ def load(app):
                 name = user.name
                 team = team.name if TEAMS_MODE else None
 
-                if config.is_scoreboard_frozen():
+                if ctfd_config.is_scoreboard_frozen():
                     if TEAMS_MODE:
                         name = 'someone'
                         team = '???'
